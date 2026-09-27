@@ -6,30 +6,28 @@ The objective of the Migrating Servers problem is to efficiently allocate a coll
 
 ## Baseline Solution
 
-To establish a functional baseline, we can implement a naive pairing strategy. This approach simply iterates through the list of files and attempts to pair each unassigned file with the first available partner it finds that satisfies the capacity constraint $L$.
+To establish a functional baseline, we can implement a naive pairing strategy. This approach simply iterates through the list of files and attempts to pair each unassigned file with the largest available partner it finds that satisfies the capacity constraint $L$. Otherwise, the file is placed on a server by itself.
 
 ```text
-Algorithm MigrateServersNaive(F, L):
+Algorithm migrateServersBaseline(files, L):
     input: List of file sizes F of length n, server capacity L
-    output: Total number of servers used
+    output: Minimum number of servers required
     
     servers_used = 0
-    assigned = boolean array of size n, initialized to false
+    Mark all files as UNASSIGNED
     
-    for i from 0 to n - 1:
-        if assigned[i] is true:
+    for each file i in F:
+        if file i is already ASSIGNED:
             continue
             
-        best_partner = -1
-        
-        for j from i + 1 to n - 1:
-            if assigned[j] is false and F[i] + F[j] <= L:
-                best_partner = j
-                break
-                
-        if best_partner != -1:
-            assigned[best_partner] = true
+        Find an UNASSIGNED file j in F such that:
+            1. Fits on the same server (file i + file j <= L)
+            2. Is the largest possible size that still fits
             
+        if partner j is found:
+            Mark file j as ASSIGNED
+            
+        Mark file i as ASSIGNED
         servers_used = servers_used + 1
         
     return servers_used
@@ -42,7 +40,7 @@ To efficiently find the minimum number of servers, we propose a greedy algorithm
 We begin by sorting the list of file sizes in ascending order. We then initialize two pointers: one at the start of the sorted list (the smallest file) and one at the end (the largest file). We check if the sum of the files at these two pointers is less than or equal to $L$. If the pair of files fit on a new server, we place them on a single server and move both pointers inward. If they do not fit, the largest file must be too large to pair with even the smallest available file. Therefore, it must occupy a server on its own, and we move only the pointer for the larger file inward. We repeat this process until all files are assigned.
 
 ```text
-Algorithm MigrateServersGreedy(F, L):
+Algorithm migrateServersGreedy(F, L):
     input: List of file sizes F of length n, server capacity L
     output: Minimum number of servers required
     
